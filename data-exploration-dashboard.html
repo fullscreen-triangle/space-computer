@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biomechanical Data Explorer</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .dashboard-title {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .dashboard-subtitle {
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            height: calc(100vh - 100px);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .sidebar {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            overflow-y: auto;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-rows: 60% 40%;
+            gap: 20px;
+        }
+
+        .video-panel, .analytics-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .athlete-card {
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .athlete-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .athlete-card:hover::before {
+            left: 100%;
+        }
+
+        .athlete-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: #4ecdc4;
+            box-shadow: 0 20px 40px rgba(78, 205, 196, 0.3);
+        }
+
+        .athlete-card.selected {
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.2);
+            transform: translateY(-3px) scale(1.01);
+        }
+
+        .athlete-name {
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .athlete-sport {
+            color: #4ecdc4;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .athlete-metrics {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .video-player {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .control-button {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border: none;
+            border-radius: 30px;
+            padding: 12px 24px;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+
+        .frame-slider {
+            flex: 1;
+            margin: 0 20px;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.2);
+            outline: none;
+            appearance: none;
+        }
+
+        .frame-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .chart-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #4ecdc4;
+        }
+
+        .metric-display {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #4ecdc4;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #4ecdc4;
+            line-height: 1;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .data-summary {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .summary-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4ecdc4;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        .pose-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.6;
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #4ecdc4;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .export-options {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .export-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            padding: 8px 16px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">🏃‍♂️ Biomechanical Data Explorer</h1>
+        <p class="dashboard-subtitle">Interactive Analysis Platform for Sports Performance Data</p>
+    </div>
+
+    <div class="main-grid">
+        <div class="sidebar">
+            <div class="data-summary">
+                <h3 class="section-title">Dataset Overview</h3>
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">13</div>
+                        <div class="stat-label">Athletes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">6</div>
+                        <div class="stat-label">Sports</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">2.1GB</div>
+                        <div class="stat-label">Data Size</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="section-title">Select Athlete</h3>
+            <div id="athleteList">
+                <!-- Athletes will be populated here -->
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="video-panel">
+                <h3 class="section-title">📹 Video Analysis & Pose Visualization</h3>
+                <div class="video-container">
+                    <video id="videoPlayer" class="video-player" controls>
+                        <source src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <svg class="pose-overlay" id="poseOverlay">
+                        <!-- Pose skeleton will be rendered here -->
+                    </svg>
+                </div>
+                
+                <div class="video-controls">
+                    <button class="control-button" onclick="togglePlayback()">▶️ Play/Pause</button>
+                    <button class="control-button" onclick="togglePoseOverlay()">🦴 Toggle Pose</button>
+                    <button class="control-button" onclick="analyzeCurrentFrame()">📊 Analyze Frame</button>
+                    <input type="range" id="frameSlider" class="frame-slider" min="0" max="100" value="0">
+                </div>
+
+                <div class="export-options">
+                    <button class="export-btn" onclick="exportCurrentFrame()">📸 Export Frame</button>
+                    <button class="export-btn" onclick="exportAnalysis()">📋 Export Analysis</button>
+                    <button class="export-btn" onclick="generateReport()">📑 Generate Report</button>
+                </div>
+            </div>
+
+            <div class="analytics-panel">
+                <h3 class="section-title">📊 Real-time Biomechanical Analysis</h3>
+                <div class="analytics-grid">
+                    <div class="chart-panel">
+                        <div class="chart-title">Joint Kinematics</div>
+                        <div id="kinematicsChart">
+                            <div class="loading-state">
+                                <div class="loading-spinner"></div>
+                                Select an athlete to view joint analysis
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-panel">
+                        <div class="chart-title">Force Analysis</div>
+                        <div id="forceChart">
+                            <div class="loading-state">
+                                <div class="loading-spinner"></div>
+                                Ground reaction forces will appear here
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-panel">
+                        <div class="chart-title">Performance Metrics</div>
+                        <div id="metricsPanel">
+                            <div class="loading-state">
+                                Select an athlete to view metrics
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced athlete database based on your datasources
+        const athleteDatabase = [
+            { 
+                name: 'Usain Bolt', 
+                sport: 'Sprinting', 
+                file: 'bolt-force-motion', 
+                color: '#ff6b6b',
+                description: 'World Record Holder - 100m/200m',
+                frames: 218,
+                duration: 7.5
+            },
+            { 
+                name: 'Didier Drogba', 
+                sport: 'Football', 
+                file: 'drogba-header', 
+                color: '#4ecdc4',
+                description: 'Header Technique Analysis',
+                frames: 894,
+                duration: 29.8
+            },
+            { 
+                name: 'Derek Chisora', 
+                sport: 'Boxing', 
+                file: 'chisora', 
+                color: '#45b7d1',
+                description: 'Professional Boxing Form',
+                frames: 0,
+                duration: 0
+            },
+            { 
+                name: 'Marika Koroibete', 
+                sport: 'Rugby', 
+                file: 'koroibete', 
+                color: '#96ceb4',
+                description: 'Rugby Union Dynamics',
+                frames: 649,
+                duration: 21.6
+            },
+            { 
+                name: 'Jonah Lomu', 
+                sport: 'Rugby', 
+                file: 'lomu', 
+                color: '#feca57',
+                description: 'Legendary Rugby Power',
+                frames: 378,
+                duration: 12.6
+            },
+            { 
+                name: 'Asafa Powell', 
+                sport: 'Sprinting', 
+                file: 'powell-start', 
+                color: '#ff9ff3',
+                description: 'Sprint Start Analysis',
+                frames: 0,
+                duration: 0
+            },
+            { 
+                name: 'Beijing Athlete', 
+                sport: 'Athletics', 
+                file: 'beijing', 
+                color: '#54a0ff',
+                description: 'Olympic Performance',
+                frames: 721,
+                duration: 24.0
+            },
+            { 
+                name: 'Powell Relay', 
+                sport: 'Relay', 
+                file: 'powell-anchor', 
+                color: '#5f27cd',
+                description: 'Anchor Leg Technique',
+                frames: 476,
+                duration: 15.9
+            },
+            { 
+                name: 'Boundary Cricket', 
+                sport: 'Cricket', 
+                file: 'boundary-nz', 
+                color: '#00d2d3',
+                description: 'Cricket Batting Form',
+                frames: 0,
+                duration: 0
+            },
+            { 
+                name: 'Wrestling Combat', 
+                sport: 'Wrestling', 
+                file: 'struggle', 
+                color: '#ff6348',
+                description: 'Ground Combat Analysis',
+                frames: 774,
+                duration: 25.8
+            },
+            { 
+                name: 'Boxing Training', 
+                sport: 'Boxing', 
+                file: 'pound', 
+                color: '#2ed573',
+                description: 'Training Session Power',
+                frames: 0,
+                duration: 0
+            },
+            { 
+                name: 'Elite Sprinter', 
+                sport: 'Track', 
+                file: 'hezvo', 
+                color: '#ffa502',
+                description: 'Sprint Technique Study',
+                frames: 319,
+                duration: 10.6
+            },
+            { 
+                name: 'Technical Study', 
+                sport: 'General', 
+                file: 'popescu', 
+                color: '#3742fa',
+                description: 'Biomechanical Research',
+                frames: 194,
+                duration: 6.5
+            }
+        ];
+
+        let selectedAthlete = null;
+        let poseData = null;
+        let biomechanicsData = null;
+        let showPose = false;
+
+        function initializeDashboard() {
+            renderAthleteList();
+            setupVideoControls();
+        }
+
+        function renderAthleteList() {
+            const container = document.getElementById('athleteList');
+            container.innerHTML = '';
+
+            athleteDatabase.forEach(athlete => {
+                const card = document.createElement('div');
+                card.className = 'athlete-card';
+                card.onclick = () => selectAthlete(athlete);
+                
+                card.innerHTML = `
+                    <div class="athlete-name">${athlete.name}</div>
+                    <div class="athlete-sport">${athlete.sport}</div>
+                    <div style="margin-top: 10px; font-size: 12px; opacity: 0.8;">
+                        ${athlete.description}
+                    </div>
+                    <div class="athlete-metrics">
+                        <span>📹 ${athlete.frames} frames</span>
+                        <span>⏱️ ${athlete.duration}s</span>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        async function selectAthlete(athlete) {
+            // Update UI selection state
+            document.querySelectorAll('.athlete-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            selectedAthlete = athlete;
+            
+            // Load video
+            const video = document.getElementById('videoPlayer');
+            video.src = `datasources/annotated/${athlete.file}_annotated.mp4`;
+            
+            // Load data (in production, this would load from your JSON files)
+            await loadAthleteData(athlete);
+            
+            // Update visualizations
+            updateAnalysisCharts();
+            updateMetricsPanel();
+        }
+
+        async function loadAthleteData(athlete) {
+            // Simulate loading from your actual JSON files
+            // In production: 
+            // - Load from datasources/models/${athlete.file}_pose_data.json
+            // - Load from datasources/posture/${athlete.file}_biomechanics_analysis.json
+            
+            try {
+                // Generate simulated data based on sport type
+                poseData = generateMockPoseData(athlete);
+                biomechanicsData = generateMockBiomechanicsData(athlete);
+                
+                console.log(`Loaded data for ${athlete.name}:`, {
+                    poseFrames: poseData.frames.length,
+                    biomechanicsFrames: biomechanicsData.frames.length
+                });
+                
+            } catch (error) {
+                console.error('Error loading athlete data:', error);
+                showError('Failed to load athlete data');
+            }
+        }
+
+        function generateMockPoseData(athlete) {
+            // Generate realistic pose data based on sport
+            const frames = [];
+            const frameCount = athlete.frames || 100;
+            
+            for (let i = 0; i < frameCount; i++) {
+                frames.push({
+                    frame: i,
+                    timestamp: i / 30,
+                    poses: [{
+                        landmarks: generateSportSpecificPose(athlete.sport, i / frameCount)
+                    }]
+                });
+            }
+            
+            return { frames };
+        }
+
+        function generateSportSpecificPose(sport, progress) {
+            const basePose = {
+                nose: { x: 0.5, y: 0.2, visibility: 0.95 },
+                left_shoulder: { x: 0.45, y: 0.35, visibility: 0.9 },
+                right_shoulder: { x: 0.55, y: 0.35, visibility: 0.9 },
+                left_elbow: { x: 0.4, y: 0.5, visibility: 0.85 },
+                right_elbow: { x: 0.6, y: 0.5, visibility: 0.85 },
+                left_wrist: { x: 0.35, y: 0.65, visibility: 0.8 },
+                right_wrist: { x: 0.65, y: 0.65, visibility: 0.8 },
+                left_hip: { x: 0.46, y: 0.65, visibility: 0.9 },
+                right_hip: { x: 0.54, y: 0.65, visibility: 0.9 },
+                left_knee: { x: 0.44, y: 0.8, visibility: 0.85 },
+                right_knee: { x: 0.56, y: 0.8, visibility: 0.85 },
+                left_ankle: { x: 0.42, y: 0.95, visibility: 0.8 },
+                right_ankle: { x: 0.58, y: 0.95, visibility: 0.8 }
+            };
+
+            // Add sport-specific variations
+            if (sport === 'Sprinting') {
+                // Running pose variations
+                const cyclePhase = (progress * 4) % 1;
+                basePose.left_knee.y += Math.sin(cyclePhase * Math.PI * 2) * 0.1;
+                basePose.right_knee.y += Math.sin((cyclePhase + 0.5) * Math.PI * 2) * 0.1;
+                basePose.left_elbow.x += Math.cos(cyclePhase * Math.PI * 2) * 0.05;
+                basePose.right_elbow.x -= Math.cos(cyclePhase * Math.PI * 2) * 0.05;
+            } else if (sport === 'Boxing') {
+                // Boxing stance and movement
+                basePose.left_wrist.x += Math.sin(progress * Math.PI * 6) * 0.1;
+                basePose.right_wrist.x += Math.cos(progress * Math.PI * 6) * 0.1;
+            }
+
+            return Object.values(basePose);
+        }
+
+        function generateMockBiomechanicsData(athlete) {
+            const frames = [];
+            const frameCount = athlete.frames || 100;
+            
+            for (let i = 0; i < frameCount; i++) {
+                const phase = i / frameCount;
+                
+                frames.push({
+                    frame_index: i,
+                    joint_angles: generateJointAngles(athlete.sport, phase),
+                    ground_reaction: generateGroundForces(athlete.sport, phase),
+                    balance_metrics: generateBalanceMetrics(athlete.sport, phase),
+                    center_of_mass: generateCenterOfMass(athlete.sport, phase)
+                });
+            }
+            
+            return { frames };
+        }
+
+        function generateJointAngles(sport, phase) {
+            const base = {
+                hip: 80,
+                knee: 90,
+                ankle: 110,
+                shoulder: 45,
+                elbow: 120
+            };
+
+            if (sport === 'Sprinting') {
+                base.knee += Math.sin(phase * Math.PI * 4) * 30;
+                base.hip += Math.cos(phase * Math.PI * 4) * 15;
+                base.ankle += Math.sin(phase * Math.PI * 6) * 20;
+            } else if (sport === 'Football') {
+                base.shoulder += Math.sin(phase * Math.PI * 2) * 25;
+                base.elbow += Math.cos(phase * Math.PI * 3) * 35;
+            }
+
+            return base;
+        }
+
+        function generateGroundForces(sport, phase) {
+            let vertical = 800;
+            let horizontal = 0;
+            
+            if (sport === 'Sprinting') {
+                vertical += Math.sin(phase * Math.PI * 8) * 600;
+                horizontal += Math.cos(phase * Math.PI * 8) * 200;
+            } else if (sport === 'Boxing') {
+                vertical += Math.random() * 300;
+                horizontal += (Math.random() - 0.5) * 400;
+            }
+            
+            return {
+                vertical,
+                horizontal,
+                impact_force: Math.sqrt(vertical * vertical + horizontal * horizontal)
+            };
+        }
+
+        function generateBalanceMetrics(sport, phase) {
+            return {
+                stability_score: 0.7 + Math.sin(phase * Math.PI * 2) * 0.2 + Math.random() * 0.1,
+                sway_area: 15 + Math.random() * 15,
+                weight_distribution: {
+                    left: 45 + Math.random() * 10,
+                    right: 45 + Math.random() * 10
+                }
+            };
+        }
+
+        function generateCenterOfMass(sport, phase) {
+            return {
+                x: Math.sin(phase * Math.PI * 4) * 20,
+                y: Math.cos(phase * Math.PI * 3) * 30,
+                z: 100 + Math.sin(phase * Math.PI * 2) * 15
+            };
+        }
+
+        function updateAnalysisCharts() {
+            if (!biomechanicsData) return;
+
+            const frames = biomechanicsData.frames.map((_, i) => i);
+            
+            // Joint Kinematics Chart
+            const hipAngles = biomechanicsData.frames.map(f => f.joint_angles.hip);
+            const kneeAngles = biomechanicsData.frames.map(f => f.joint_angles.knee);
+            const ankleAngles = biomechanicsData.frames.map(f => f.joint_angles.ankle);
+
+            Plotly.newPlot('kinematicsChart', [
+                { x: frames, y: hipAngles, name: 'Hip', line: {color: '#ff6b6b', width: 3} },
+                { x: frames, y: kneeAngles, name: 'Knee', line: {color: '#4ecdc4', width: 3} },
+                { x: frames, y: ankleAngles, name: 'Ankle', line: {color: '#45b7d1', width: 3} }
+            ], {
+                title: {text: 'Joint Angles', font: {color: 'white', size: 14}},
+                xaxis: { title: 'Frame', color: 'white', gridcolor: 'rgba(255,255,255,0.2)' },
+                yaxis: { title: 'Angle (°)', color: 'white', gridcolor: 'rgba(255,255,255,0.2)' },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white', size: 12 },
+                legend: { font: { color: 'white' } }
+            }, {responsive: true, displayModeBar: false});
+
+            // Force Analysis Chart
+            const verticalForces = biomechanicsData.frames.map(f => f.ground_reaction.vertical);
+            const horizontalForces = biomechanicsData.frames.map(f => f.ground_reaction.horizontal);
+
+            Plotly.newPlot('forceChart', [
+                { 
+                    x: frames, 
+                    y: verticalForces, 
+                    name: 'Vertical', 
+                    line: {color: '#96ceb4', width: 3},
+                    fill: 'tonexty'
+                },
+                { 
+                    x: frames, 
+                    y: horizontalForces, 
+                    name: 'Horizontal', 
+                    line: {color: '#feca57', width: 3} 
+                }
+            ], {
+                title: {text: 'Ground Reaction Forces', font: {color: 'white', size: 14}},
+                xaxis: { title: 'Frame', color: 'white', gridcolor: 'rgba(255,255,255,0.2)' },
+                yaxis: { title: 'Force (N)', color: 'white', gridcolor: 'rgba(255,255,255,0.2)' },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white', size: 12 },
+                legend: { font: { color: 'white' } }
+            }, {responsive: true, displayModeBar: false});
+        }
+
+        function updateMetricsPanel() {
+            if (!biomechanicsData || !selectedAthlete) return;
+
+            const avgStability = biomechanicsData.frames.reduce((sum, f) => 
+                sum + f.balance_metrics.stability_score, 0) / biomechanicsData.frames.length;
+            
+            const maxForce = Math.max(...biomechanicsData.frames.map(f => f.ground_reaction.impact_force));
+            
+            const kneeRange = Math.max(...biomechanicsData.frames.map(f => f.joint_angles.knee)) - 
+                            Math.min(...biomechanicsData.frames.map(f => f.joint_angles.knee));
+
+            const avgCOM = {
+                x: biomechanicsData.frames.reduce((sum, f) => sum + f.center_of_mass.x, 0) / biomechanicsData.frames.length,
+                y: biomechanicsData.frames.reduce((sum, f) => sum + f.center_of_mass.y, 0) / biomechanicsData.frames.length
+            };
+
+            document.getElementById('metricsPanel').innerHTML = `
+                <div class="metric-display">
+                    <div class="metric-value">${avgStability.toFixed(3)}</div>
+                    <div class="metric-label">Stability Score</div>
+                </div>
+                <div class="metric-display">
+                    <div class="metric-value">${maxForce.toFixed(0)}N</div>
+                    <div class="metric-label">Peak Force</div>
+                </div>
+                <div class="metric-display">
+                    <div class="metric-value">${kneeRange.toFixed(1)}°</div>
+                    <div class="metric-label">Knee ROM</div>
+                </div>
+                <div class="metric-display">
+                    <div class="metric-value">${selectedAthlete.sport}</div>
+                    <div class="metric-label">Sport Type</div>
+                </div>
+            `;
+        }
+
+        function setupVideoControls() {
+            const video = document.getElementById('videoPlayer');
+            const slider = document.getElementById('frameSlider');
+
+            video.addEventListener('timeupdate', () => {
+                if (video.duration) {
+                    const progress = (video.currentTime / video.duration) * 100;
+                    slider.value = progress;
+                }
+            });
+
+            slider.addEventListener('input', () => {
+                if (video.duration) {
+                    video.currentTime = (slider.value / 100) * video.duration;
+                }
+            });
+        }
+
+        function togglePlayback() {
+            const video = document.getElementById('videoPlayer');
+            if (video.paused) {
+                video.play();
+            } else {
+                video.pause();
+            }
+        }
+
+        function togglePoseOverlay() {
+            showPose = !showPose;
+            if (showPose && poseData) {
+                visualizeCurrentPose();
+            } else {
+                clearPoseOverlay();
+            }
+        }
+
+        function visualizeCurrentPose() {
+            if (!poseData) return;
+            
+            const video = document.getElementById('videoPlayer');
+            const overlay = document.getElementById('poseOverlay');
+            const currentTime = video.currentTime;
+            const frameIndex = Math.floor(currentTime * 30); // Assuming 30fps
+            
+            if (frameIndex >= poseData.frames.length) return;
+            
+            const frame = poseData.frames[frameIndex];
+            if (!frame.poses.length) return;
+            
+            const pose = frame.poses[0].landmarks;
+            const videoRect = video.getBoundingClientRect();
+            
+            clearPoseOverlay();
+            
+            // Draw skeleton connections
+            const connections = [
+                [0, 1], [1, 2], [2, 3], // Head
+                [1, 4], [2, 5], // Shoulders to nose
+                [4, 6], [5, 7], [6, 8], [7, 9], // Arms
+                [4, 10], [5, 11], [10, 11], // Torso
+                [10, 12], [11, 13], [12, 14], [13, 15] // Legs
+            ];
+            
+            // Draw connections
+            connections.forEach(([start, end]) => {
+                if (pose[start] && pose[end] && 
+                    pose[start].visibility > 0.5 && pose[end].visibility > 0.5) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', pose[start].x * videoRect.width);
+                    line.setAttribute('y1', pose[start].y * videoRect.height);
+                    line.setAttribute('x2', pose[end].x * videoRect.width);
+                    line.setAttribute('y2', pose[end].y * videoRect.height);
+                    line.setAttribute('stroke', '#4ecdc4');
+                    line.setAttribute('stroke-width', '3');
+                    line.setAttribute('stroke-linecap', 'round');
+                    overlay.appendChild(line);
+                }
+            });
+            
+            // Draw joints
+            pose.forEach((point, index) => {
+                if (point.visibility > 0.5) {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', point.x * videoRect.width);
+                    circle.setAttribute('cy', point.y * videoRect.height);
+                    circle.setAttribute('r', '6');
+                    circle.setAttribute('fill', '#ff6b6b');
+                    circle.setAttribute('stroke', '#fff');
+                    circle.setAttribute('stroke-width', '2');
+                    overlay.appendChild(circle);
+                }
+            });
+        }
+
+        function clearPoseOverlay() {
+            document.getElementById('poseOverlay').innerHTML = '';
+        }
+
+        function analyzeCurrentFrame() {
+            if (!selectedAthlete) {
+                alert('Please select an athlete first');
+                return;
+            }
+            
+            const video = document.getElementById('videoPlayer');
+            const currentTime = video.currentTime;
+            const frameIndex = Math.floor(currentTime * 30);
+            
+            if (biomechanicsData && frameIndex < biomechanicsData.frames.length) {
+                const frameData = biomechanicsData.frames[frameIndex];
+                
+                const analysis = `
+Frame Analysis - ${selectedAthlete.name}
+Time: ${currentTime.toFixed(2)}s (Frame ${frameIndex})
+
+Joint Angles:
+• Hip: ${frameData.joint_angles.hip.toFixed(1)}°
+• Knee: ${frameData.joint_angles.knee.toFixed(1)}°
+• Ankle: ${frameData.joint_angles.ankle.toFixed(1)}°
+• Shoulder: ${frameData.joint_angles.shoulder.toFixed(1)}°
+• Elbow: ${frameData.joint_angles.elbow.toFixed(1)}°
+
+Ground Forces:
+• Vertical: ${frameData.ground_reaction.vertical.toFixed(0)}N
+• Horizontal: ${frameData.ground_reaction.horizontal.toFixed(0)}N
+• Impact: ${frameData.ground_reaction.impact_force.toFixed(0)}N
+
+Balance:
+• Stability Score: ${frameData.balance_metrics.stability_score.toFixed(3)}
+• Sway Area: ${frameData.balance_metrics.sway_area.toFixed(1)}cm²
+                `;
+                
+                alert(analysis);
+            }
+        }
+
+        function exportCurrentFrame() {
+            alert('Frame export feature would capture the current video frame with pose overlay as PNG/JPG');
+        }
+
+        function exportAnalysis() {
+            if (!selectedAthlete || !biomechanicsData) {
+                alert('Please select an athlete first');
+                return;
+            }
+            
+            const analysisData = {
+                athlete: selectedAthlete.name,
+                sport: selectedAthlete.sport,
+                timestamp: new Date().toISOString(),
+                data: biomechanicsData
+            };
+            
+            const dataStr = JSON.stringify(analysisData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `${selectedAthlete.file}_analysis_export.json`;
+            link.click();
+        }
+
+        function generateReport() {
+            if (!selectedAthlete) {
+                alert('Please select an athlete first');
+                return;
+            }
+            
+            alert('Report generation would create a comprehensive PDF report with:\n\n• Executive Summary\n• Detailed Biomechanical Analysis\n• Performance Metrics\n• Recommendations\n• Visual Charts and Diagrams');
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #ff6b6b;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                z-index: 1000;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            `;
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+
+        // Initialize dashboard when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+    </script>
+</body>
+</html> 

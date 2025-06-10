@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biomechanical Data Explorer</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            height: calc(100vh - 80px);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .sidebar {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+        }
+
+        .content-area {
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .video-section, .analysis-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .athlete-card {
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .athlete-card:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+            border-color: #00ff88;
+        }
+
+        .athlete-card.selected {
+            border-color: #ff6b6b;
+            background: rgba(255,107,107,0.2);
+        }
+
+        .athlete-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .athlete-sport {
+            color: #00ff88;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .athlete-stats {
+            margin-top: 10px;
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .video-player {
+            width: 100%;
+            height: 100%;
+        }
+
+        .video-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255,107,107,0.4);
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            height: 100%;
+        }
+
+        .chart-container {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .metric-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+            border-left: 4px solid #00ff88;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .pose-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .joint-point {
+            fill: #ff6b6b;
+            stroke: #fff;
+            stroke-width: 2;
+        }
+
+        .bone-line {
+            stroke: #00ff88;
+            stroke-width: 3;
+            stroke-linecap: round;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            opacity: 0.7;
+        }
+
+        .stats-overview {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .data-selector {
+            margin-bottom: 20px;
+        }
+
+        .data-selector select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            font-size: 14px;
+        }
+
+        .data-selector select option {
+            background: #2a5298;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏃‍♂️ Biomechanical Data Explorer</h1>
+        <p>Interactive Analysis of Sports Performance Data</p>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="data-selector">
+                <select id="dataTypeSelector">
+                    <option value="pose">Pose Analysis</option>
+                    <option value="biomechanics">Biomechanics</option>
+                    <option value="motion">Motion Metrics</option>
+                </select>
+            </div>
+
+            <div class="stats-overview">
+                <div class="stat-card">
+                    <div class="metric-value" id="totalAthletes">13</div>
+                    <div class="metric-label">Athletes</div>
+                </div>
+            </div>
+            
+            <div id="athleteList">
+                <!-- Athlete cards will be populated here -->
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="video-section">
+                <h3>📹 Video Analysis</h3>
+                <div class="video-container">
+                    <video id="videoPlayer" class="video-player" controls>
+                        <source src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <svg class="pose-overlay" id="poseOverlay">
+                        <!-- Pose visualization will be rendered here -->
+                    </svg>
+                </div>
+                
+                <div class="video-controls">
+                    <button class="control-btn" onclick="playPause()">▶️ Play/Pause</button>
+                    <button class="control-btn" onclick="showPoseData()">🦴 Show Pose</button>
+                    <button class="control-btn" onclick="exportFrame()">📸 Export Frame</button>
+                    <input type="range" id="frameSlider" min="0" max="100" value="0" style="flex: 1; margin: 0 15px;">
+                </div>
+            </div>
+
+            <div class="analysis-section">
+                <h3>📊 Biomechanical Analysis</h3>
+                <div class="analysis-grid">
+                    <div class="chart-container">
+                        <div id="jointAnglesChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <div id="forceAnalysisChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <div id="stabilityChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <div id="performanceMetrics">
+                            <div class="loading">Select an athlete to view metrics</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Athletic data based on your datasources
+        const athletes = [
+            { name: 'Usain Bolt', sport: 'Sprinting', file: 'bolt-force-motion', color: '#ff6b6b' },
+            { name: 'Didier Drogba', sport: 'Football', file: 'drogba-header', color: '#4ecdc4' },
+            { name: 'Derek Chisora', sport: 'Boxing', file: 'chisora', color: '#45b7d1' },
+            { name: 'Marika Koroibete', sport: 'Rugby', file: 'koroibete', color: '#96ceb4' },
+            { name: 'Jonah Lomu', sport: 'Rugby', file: 'lomu', color: '#feca57' },
+            { name: 'Asafa Powell', sport: 'Sprinting', file: 'powell-start', color: '#ff9ff3' },
+            { name: 'Beijing Athlete', sport: 'Athletics', file: 'beijing', color: '#54a0ff' },
+            { name: 'Powell Anchor', sport: 'Relay', file: 'powell-anchor', color: '#5f27cd' },
+            { name: 'Boundary NZ', sport: 'Cricket', file: 'boundary-nz', color: '#00d2d3' },
+            { name: 'Combat Sport', sport: 'Wrestling', file: 'struggle', color: '#ff6348' },
+            { name: 'Boxing Training', sport: 'Boxing', file: 'pound', color: '#2ed573' },
+            { name: 'Elite Sprinter', sport: 'Track', file: 'hezvo', color: '#ffa502' },
+            { name: 'Technical Analysis', sport: 'General', file: 'popescu', color: '#3742fa' }
+        ];
+
+        let currentAthlete = null;
+        let currentPoseData = null;
+        let currentBiomechanics = null;
+
+        // Initialize the dashboard
+        function initializeDashboard() {
+            populateAthleteList();
+            setupEventListeners();
+        }
+
+        function populateAthleteList() {
+            const athleteList = document.getElementById('athleteList');
+            athleteList.innerHTML = '';
+
+            athletes.forEach(athlete => {
+                const card = document.createElement('div');
+                card.className = 'athlete-card';
+                card.onclick = () => selectAthlete(athlete);
+                
+                card.innerHTML = `
+                    <div class="athlete-name">${athlete.name}</div>
+                    <div class="athlete-sport">${athlete.sport}</div>
+                    <div class="athlete-stats">
+                        📊 Analysis Available<br>
+                        🎥 Video Ready
+                    </div>
+                `;
+                
+                athleteList.appendChild(card);
+            });
+        }
+
+        function selectAthlete(athlete) {
+            // Update selected state
+            document.querySelectorAll('.athlete-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            currentAthlete = athlete;
+            loadAthleteData(athlete);
+        }
+
+        async function loadAthleteData(athlete) {
+            try {
+                // Load video
+                const video = document.getElementById('videoPlayer');
+                video.src = `datasources/annotated/${athlete.file}_annotated.mp4`;
+
+                // In a real implementation, you would load the JSON data here
+                // For demo purposes, we'll simulate the data structure
+                await simulateDataLoading(athlete);
+                
+                updateAnalysisCharts();
+                updatePerformanceMetrics();
+                
+            } catch (error) {
+                console.error('Error loading athlete data:', error);
+            }
+        }
+
+        async function simulateDataLoading(athlete) {
+            // Simulate loading pose data
+            currentPoseData = {
+                frames: Array.from({length: 100}, (_, i) => ({
+                    frame: i,
+                    timestamp: i / 30,
+                    poses: [{
+                        landmarks: generateRandomPose()
+                    }]
+                }))
+            };
+
+            // Simulate biomechanics data
+            currentBiomechanics = {
+                frames: Array.from({length: 100}, (_, i) => ({
+                    joint_angles: {
+                        hip: 70 + Math.sin(i * 0.1) * 20,
+                        knee: 90 + Math.cos(i * 0.15) * 30,
+                        ankle: 110 + Math.sin(i * 0.2) * 15,
+                        shoulder: 45 + Math.cos(i * 0.12) * 25,
+                        elbow: 120 + Math.sin(i * 0.18) * 35
+                    },
+                    ground_reaction: {
+                        vertical: 800 + Math.random() * 400,
+                        horizontal: -50 + Math.random() * 100,
+                        impact_force: 1200 + Math.random() * 600
+                    },
+                    balance_metrics: {
+                        stability_score: 0.7 + Math.random() * 0.3,
+                        sway_area: 15 + Math.random() * 20
+                    }
+                }))
+            };
+        }
+
+        function generateRandomPose() {
+            const joints = ['nose', 'left_shoulder', 'right_shoulder', 'left_elbow', 'right_elbow', 
+                          'left_wrist', 'right_wrist', 'left_hip', 'right_hip', 'left_knee', 
+                          'right_knee', 'left_ankle', 'right_ankle'];
+            
+            return joints.map(joint => ({
+                x: 0.3 + Math.random() * 0.4,
+                y: 0.2 + Math.random() * 0.6,
+                z: -0.1 + Math.random() * 0.2,
+                visibility: 0.8 + Math.random() * 0.2
+            }));
+        }
+
+        function updateAnalysisCharts() {
+            if (!currentBiomechanics) return;
+
+            // Joint Angles Chart
+            const frames = currentBiomechanics.frames.map((_, i) => i);
+            const hipAngles = currentBiomechanics.frames.map(f => f.joint_angles.hip);
+            const kneeAngles = currentBiomechanics.frames.map(f => f.joint_angles.knee);
+            const ankleAngles = currentBiomechanics.frames.map(f => f.joint_angles.ankle);
+
+            Plotly.newPlot('jointAnglesChart', [
+                { x: frames, y: hipAngles, name: 'Hip', line: {color: '#ff6b6b'} },
+                { x: frames, y: kneeAngles, name: 'Knee', line: {color: '#4ecdc4'} },
+                { x: frames, y: ankleAngles, name: 'Ankle', line: {color: '#45b7d1'} }
+            ], {
+                title: 'Joint Angles Over Time',
+                xaxis: { title: 'Frame' },
+                yaxis: { title: 'Angle (degrees)' },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white' }
+            }, {responsive: true});
+
+            // Force Analysis Chart
+            const verticalForces = currentBiomechanics.frames.map(f => f.ground_reaction.vertical);
+            const horizontalForces = currentBiomechanics.frames.map(f => f.ground_reaction.horizontal);
+
+            Plotly.newPlot('forceAnalysisChart', [
+                { x: frames, y: verticalForces, name: 'Vertical', line: {color: '#96ceb4'} },
+                { x: frames, y: horizontalForces, name: 'Horizontal', line: {color: '#feca57'} }
+            ], {
+                title: 'Ground Reaction Forces',
+                xaxis: { title: 'Frame' },
+                yaxis: { title: 'Force (N)' },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white' }
+            }, {responsive: true});
+
+            // Stability Chart
+            const stabilityScores = currentBiomechanics.frames.map(f => f.balance_metrics.stability_score);
+
+            Plotly.newPlot('stabilityChart', [{
+                x: frames,
+                y: stabilityScores,
+                type: 'scatter',
+                fill: 'tonexty',
+                name: 'Stability Score',
+                line: {color: '#ff9ff3'}
+            }], {
+                title: 'Balance & Stability',
+                xaxis: { title: 'Frame' },
+                yaxis: { title: 'Stability Score', range: [0, 1] },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white' }
+            }, {responsive: true});
+        }
+
+        function updatePerformanceMetrics() {
+            if (!currentBiomechanics || !currentAthlete) return;
+
+            const avgStability = currentBiomechanics.frames.reduce((sum, f) => 
+                sum + f.balance_metrics.stability_score, 0) / currentBiomechanics.frames.length;
+            
+            const maxForce = Math.max(...currentBiomechanics.frames.map(f => f.ground_reaction.impact_force));
+            
+            const kneeRom = Math.max(...currentBiomechanics.frames.map(f => f.joint_angles.knee)) - 
+                          Math.min(...currentBiomechanics.frames.map(f => f.joint_angles.knee));
+
+            document.getElementById('performanceMetrics').innerHTML = `
+                <h4>${currentAthlete.name} - Performance Metrics</h4>
+                <div class="metric-card">
+                    <div class="metric-value">${avgStability.toFixed(2)}</div>
+                    <div class="metric-label">Average Stability</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${maxForce.toFixed(0)}N</div>
+                    <div class="metric-label">Peak Ground Force</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${kneeRom.toFixed(1)}°</div>
+                    <div class="metric-label">Knee Range of Motion</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${currentAthlete.sport}</div>
+                    <div class="metric-label">Sport Category</div>
+                </div>
+            `;
+        }
+
+        function setupEventListeners() {
+            const video = document.getElementById('videoPlayer');
+            const frameSlider = document.getElementById('frameSlider');
+
+            video.addEventListener('timeupdate', () => {
+                if (video.duration) {
+                    const progress = (video.currentTime / video.duration) * 100;
+                    frameSlider.value = progress;
+                }
+            });
+
+            frameSlider.addEventListener('input', () => {
+                if (video.duration) {
+                    video.currentTime = (frameSlider.value / 100) * video.duration;
+                }
+            });
+        }
+
+        function playPause() {
+            const video = document.getElementById('videoPlayer');
+            if (video.paused) video.play();
+            else video.pause();
+        }
+
+        function showPoseData() {
+            if (!currentPoseData) return;
+            
+            const video = document.getElementById('videoPlayer');
+            const currentTime = video.currentTime;
+            const frameRate = 30; // Assuming 30fps
+            const frameIndex = Math.floor(currentTime * frameRate);
+            
+            if (frameIndex < currentPoseData.frames.length) {
+                visualizePose(currentPoseData.frames[frameIndex]);
+            }
+        }
+
+        function visualizePose(frameData) {
+            const overlay = document.getElementById('poseOverlay');
+            const video = document.getElementById('videoPlayer');
+            
+            // Clear previous pose
+            overlay.innerHTML = '';
+            
+            if (!frameData.poses.length) return;
+            
+            const pose = frameData.poses[0].landmarks;
+            const videoRect = video.getBoundingClientRect();
+            
+            // Draw pose skeleton
+            const connections = [
+                [0, 1], [1, 2], [2, 3], [3, 4], // Head
+                [5, 6], [5, 7], [6, 8], [7, 9], [8, 10], // Arms
+                [11, 12], [11, 13], [12, 14], [13, 15], [14, 16] // Legs
+            ];
+            
+            pose.forEach((point, index) => {
+                if (point.visibility > 0.5) {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', point.x * videoRect.width);
+                    circle.setAttribute('cy', point.y * videoRect.height);
+                    circle.setAttribute('r', 4);
+                    circle.setAttribute('class', 'joint-point');
+                    overlay.appendChild(circle);
+                }
+            });
+        }
+
+        function exportFrame() {
+            alert('Frame export functionality would save the current frame with pose overlay as an image.');
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+    </script>
+</body>
+</html> 

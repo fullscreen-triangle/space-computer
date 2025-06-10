@@ -1,0 +1,199 @@
+{
+  "name": "space-computer",
+  "version": "0.1.0",
+  "description": "AI-Powered Biomechanical Analysis & Interactive Sports Entertainment Platform",
+  "keywords": [
+    "biomechanics",
+    "AI",
+    "sports",
+    "motion-analysis",
+    "computer-vision",
+    "3d-visualization",
+    "pose-estimation",
+    "healthcare",
+    "rehabilitation",
+    "react",
+    "three.js",
+    "remotion"
+  ],
+  "homepage": "https://fullscreen-triangle.github.io/space-computer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fullscreen-triangle/space-computer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fullscreen-triangle/space-computer/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Space Computer Team",
+    "email": "team@space-computer.ai"
+  },
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "remotion dev",
+    "build": "remotion build",
+    "render": "remotion render",
+    "upgrade": "remotion upgrade",
+    "server": "remotion server",
+    "preview": "remotion preview",
+    "studio": "remotion studio",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "eslint src --ext .ts,.tsx,.js,.jsx --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "pre-commit": "lint-staged",
+    "prepare": "husky install",
+    "start": "npm run dev",
+    "clean": "rimraf out dist .remotion",
+    "analyze": "npm run build && npx webpack-bundle-analyzer out/bundle.js",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^8.15.12",
+    "@react-three/drei": "^9.92.7",
+    "@remotion/bundler": "^4.0.77",
+    "@remotion/cli": "^4.0.77",
+    "@remotion/three": "^4.0.77",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remotion": "^4.0.77",
+    "three": "^0.158.0",
+    "@types/three": "^0.158.3",
+    "framer-motion": "^10.16.16",
+    "react-spring": "^9.7.3",
+    "zustand": "^4.4.7",
+    "immer": "^10.0.3",
+    "use-immer": "^0.9.0",
+    "axios": "^1.6.2",
+    "react-query": "^3.39.3",
+    "@tanstack/react-query": "^5.14.2",
+    "react-hook-form": "^7.48.2",
+    "react-router-dom": "^6.20.1",
+    "clsx": "^2.0.0",
+    "class-variance-authority": "^0.7.0",
+    "tailwind-merge": "^2.1.0",
+    "lucide-react": "^0.294.0",
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.0.18",
+    "react-hot-toast": "^2.4.1",
+    "react-helmet-async": "^2.0.4",
+    "date-fns": "^2.30.0",
+    "nanoid": "^5.0.4",
+    "lodash-es": "^4.17.21",
+    "@types/lodash-es": "^4.17.12"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.17",
+    "@types/node": "^20.10.4",
+    "typescript": "^5.3.3",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
+    "eslint": "^8.55.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-testing-library": "^6.2.0",
+    "eslint-plugin-jest-dom": "^5.1.0",
+    "prettier": "^3.1.1",
+    "prettier-plugin-tailwindcss": "^0.5.7",
+    "tailwindcss": "^3.3.6",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "jest": "^29.7.0",
+    "@jest/types": "^29.6.3",
+    "jest-environment-jsdom": "^29.7.0",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/user-event": "^14.5.1",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "rimraf": "^5.0.5",
+    "@storybook/react": "^7.6.4",
+    "@storybook/addon-essentials": "^7.6.4",
+    "@storybook/addon-interactions": "^7.6.4",
+    "@storybook/addon-links": "^7.6.4",
+    "@storybook/blocks": "^7.6.4",
+    "@storybook/testing-library": "^0.2.2",
+    "storybook": "^7.6.4",
+    "webpack-bundle-analyzer": "^4.10.1",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.8",
+    "vite-plugin-eslint": "^1.8.1"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-dom"
+    ],
+    "moduleNameMapping": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    },
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/**/*.d.ts",
+      "!src/index.tsx",
+      "!src/**/*.stories.tsx"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
+  },
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  }
+} 

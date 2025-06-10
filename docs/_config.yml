@@ -1,0 +1,82 @@
+# Site settings
+title: "Space Computer"
+description: "AI-Powered Biomechanical Analysis & Interactive Sports Entertainment Platform"
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "https://fullscreen-triangle.github.io" # the base hostname & protocol for your site
+twitter_username: spacecomputer
+github_username: fullscreen-triangle
+
+# Build settings
+markdown: kramdown
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Navigation
+header_pages:
+  - index.md
+  - getting-started.md
+  - platform.md
+  - models.md
+  - modules.md
+  - orchestration.md
+  - api-reference.md
+  - use-cases.md
+  - deployment.md
+  - contributing.md
+
+# Collections
+collections:
+  lab:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "lab"
+    values:
+      layout: "default"
+
+# SEO and social
+author: Space Computer Team
+social:
+  name: Space Computer
+  links:
+    - https://twitter.com/spacecomputer
+    - https://github.com/fullscreen-triangle/space-computer
+
+# Analytics (optional)
+# google_analytics: UA-XXXXXXXX-X
+
+# Syntax highlighting
+highlighter: rouge
+
+# Pagination
+paginate: 10
+paginate_path: "/blog/page:num/"
+
+# Exclude files
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - README.md
+
+# Site logo
+logo: /assets/images/logo.png
+
+# Site features
+show_excerpts: true 
