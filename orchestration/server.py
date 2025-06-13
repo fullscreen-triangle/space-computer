@@ -16,6 +16,7 @@ from typing import Dict, Any, List, Optional
 
 # Import backend components
 from backend.api.routes import router as backend_router
+from backend.api.athlete_endpoints import router as athlete_router
 from backend.config.settings import API_HOST, API_PORT, CORS_ORIGINS, DEBUG
 
 # Import orchestration components
@@ -85,6 +86,7 @@ class FeedbackRequest(BaseModel):
 
 # Include backend API routes
 app.include_router(backend_router, prefix="/api")
+app.include_router(athlete_router)
 
 # Define posture query endpoint
 @app.post("/api/posture/query", response_model=Dict[str, Any])
