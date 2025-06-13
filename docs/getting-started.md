@@ -96,6 +96,53 @@ Once processing is complete, you can:
 - **Compare with professionals** → "Show me Federer's serve"
 - **Get performance metrics** → "How fast is this pitch?"
 
+### **Step 4: Elite Athlete Integration**
+Access and analyze professional athlete data:
+1. **Select Athlete** → Choose from the athlete database
+2. **Load Technique** → View elite movement patterns
+3. **Compare Analysis** → Side-by-side or overlay comparison
+4. **Get Insights** → AI-powered technique breakdown
+
+#### **Athlete Database Features**
+```yaml
+Athlete_Selection:
+  - Filter by sport
+  - Filter by technique
+  - Filter by skill level
+  - Search by name
+
+Data_Visualization:
+  - Side-by-side comparison
+  - Overlay comparison
+  - Metrics comparison
+  - Real-time analysis
+
+AI_Analysis:
+  - Technique breakdown
+  - Performance metrics
+  - Improvement suggestions
+  - Biomechanical insights
+```
+
+#### **Comparison Modes**
+1. **Side-by-Side**
+   - View both techniques simultaneously
+   - Frame-synchronized playback
+   - Joint-by-joint analysis
+   - Performance metrics comparison
+
+2. **Overlay**
+   - Superimpose techniques
+   - Highlight differences
+   - Track joint trajectories
+   - Analyze timing differences
+
+3. **Metrics**
+   - Compare key performance indicators
+   - View biomechanical data
+   - Analyze efficiency metrics
+   - Track progress over time
+
 ## 🤖 **AI Chat Interface**
 
 ### **Types of Questions You Can Ask**

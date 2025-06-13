@@ -107,11 +107,11 @@ Space Computer is built as a **distributed, microservices-based platform** that 
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘    │
 │                                                                      │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐    │
-│  │ Voice Processing│  │ Video Analysis  │  │ Knowledge Graph │    │
-│  │                 │  │                 │  │                 │    │
-│  │ • Speech-to-Text│  │ • Quality Check │  │ • Technique DB  │    │
-│  │ • Text-to-Speech│  │ • Frame Extract │  │ • Pattern Match │    │
-│  │ • Voice Cloning │  │ • Compression   │  │ • Similarity    │    │
+│  │ Elite Athlete   │  │ Video Analysis  │  │ Knowledge Graph │    │
+│  │   Processing    │  │                 │  │                 │    │
+│  │ • Data Loading  │  │ • Quality Check │  │ • Technique DB  │    │
+│  │ • Pose Analysis │  │ • Frame Extract │  │ • Pattern Match │    │
+│  │ • Comparison    │  │ • Compression   │  │ • Similarity    │    │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘    │
 │                                                                      │
 └──────────────────────────────────────────────────────────────────────┘
@@ -129,12 +129,12 @@ Space Computer is built as a **distributed, microservices-based platform** that 
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘     │
 │                                                                       │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │
-│  │  User Data      │  │ Analytics DB    │  │  Cache Layer    │     │
-│  │                 │  │                 │  │                 │     │
-│  │ • Profiles      │  │ • Usage Stats   │  │ • Redis Cluster│     │
-│  │ • Preferences   │  │ • Performance   │  │ • CDN Cache     │     │
-│  │ • Upload History│  │ • AI Metrics    │  │ • Model Cache   │     │
-│  │ • Social Data   │  │ • Error Logs    │  │ • Result Cache  │     │
+│  │ Elite Athlete   │  │ Analytics DB    │  │  Cache Layer    │     │
+│  │   Database      │  │                 │  │                 │     │
+│  │ • Athlete Data  │  │ • Usage Stats   │  │ • Redis Cluster│     │
+│  │ • Motion Capture│  │ • Performance   │  │ • CDN Cache     │     │
+│  │ • Biomech Data  │  │ • AI Metrics    │  │ • Model Cache   │     │
+│  │ • Performance   │  │ • Error Logs    │  │ • Result Cache  │     │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘     │
 │                                                                       │
 └───────────────────────────────────────────────────────────────────────┘

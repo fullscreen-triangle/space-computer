@@ -334,6 +334,192 @@ curl -X POST \
   https://api.space-computer.ai/v1/poses/sessions/pos_session_abc123/optimize
 ```
 
+## 🏃 **Elite Athlete Data API**
+
+### **List Available Athletes**
+
+**Endpoint**: `GET /athletes`
+
+Get a list of available elite athletes and their techniques.
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+     https://api.space-computer.ai/v1/athletes
+```
+
+**Query Parameters**:
+- `sport` (string): Filter by sport type
+- `technique` (string): Filter by specific technique
+- `skill_level` (string): Filter by skill level
+- `page` (integer): Page number for pagination
+- `limit` (integer): Number of results per page
+
+**Response**:
+```json
+{
+  "athletes": [
+    {
+      "id": "ath_1234567890",
+      "name": "John Smith",
+      "sport": "tennis",
+      "techniques": ["serve", "forehand", "backhand"],
+      "skill_level": "professional",
+      "metadata": {
+        "height": 188,
+        "weight": 85,
+        "experience": "15 years",
+        "achievements": ["Grand Slam Winner", "World #1"]
+      }
+    }
+  ],
+  "pagination": {
+    "total": 150,
+    "page": 1,
+    "limit": 10,
+    "pages": 15
+  }
+}
+```
+
+### **Get Athlete Data**
+
+**Endpoint**: `GET /athletes/{athlete_id}`
+
+Get detailed biomechanical data for a specific athlete.
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+     https://api.space-computer.ai/v1/athletes/ath_1234567890
+```
+
+**Response**:
+```json
+{
+  "athlete_id": "ath_1234567890",
+  "name": "John Smith",
+  "sport": "tennis",
+  "techniques": {
+    "serve": {
+      "data_url": "https://api.space-computer.ai/v1/athletes/ath_1234567890/techniques/serve",
+      "metrics": {
+        "ball_speed": 220,
+        "spin_rate": 2500,
+        "accuracy": 0.85
+      },
+      "biomechanical_data": {
+        "kinematics": {
+          "joint_angles": {
+            "shoulder": {"min": 0, "max": 180, "average": 90},
+            "elbow": {"min": 0, "max": 150, "average": 75}
+          },
+          "velocities": {
+            "shoulder": {"peak": 1200, "average": 800},
+            "elbow": {"peak": 900, "average": 600}
+          }
+        },
+        "kinetics": {
+          "forces": {
+            "ground_reaction": {"peak": 2500, "average": 1800},
+            "joint_moments": {"shoulder": 120, "elbow": 80}
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### **Compare with Athlete**
+
+**Endpoint**: `POST /analysis/compare`
+
+Compare user's technique with elite athlete data.
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "analysis_id": "ana_1234567890",
+    "athlete_id": "ath_1234567890",
+    "technique": "serve",
+    "comparison_mode": "side-by-side"
+  }' \
+  https://api.space-computer.ai/v1/analysis/compare
+```
+
+**Response**:
+```json
+{
+  "comparison_id": "cmp_1234567890",
+  "analysis_id": "ana_1234567890",
+  "athlete_id": "ath_1234567890",
+  "technique": "serve",
+  "comparison_mode": "side-by-side",
+  "results": {
+    "differences": {
+      "shoulder_rotation": {
+        "user": 85,
+        "athlete": 95,
+        "difference": -10,
+        "significance": "high"
+      },
+      "elbow_extension": {
+        "user": 140,
+        "athlete": 150,
+        "difference": -10,
+        "significance": "medium"
+      }
+    },
+    "performance_metrics": {
+      "ball_speed": {
+        "user": 180,
+        "athlete": 220,
+        "difference": -40,
+        "improvement_potential": "high"
+      }
+    },
+    "recommendations": [
+      {
+        "aspect": "shoulder_rotation",
+        "suggestion": "Increase shoulder rotation by 10 degrees",
+        "impact": "Expected 15% increase in ball speed"
+      }
+    ]
+  }
+}
+```
+
+### **Get Comparison Visualization**
+
+**Endpoint**: `GET /analysis/compare/{comparison_id}/visualization`
+
+Get visualization data for technique comparison.
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+     https://api.space-computer.ai/v1/analysis/compare/cmp_1234567890/visualization
+```
+
+**Response**:
+```json
+{
+  "comparison_id": "cmp_1234567890",
+  "visualization_data": {
+    "side_by_side": {
+      "user_url": "https://api.space-computer.ai/v1/visualizations/user_serve",
+      "athlete_url": "https://api.space-computer.ai/v1/visualizations/athlete_serve"
+    },
+    "overlay": {
+      "url": "https://api.space-computer.ai/v1/visualizations/overlay_serve"
+    },
+    "metrics": {
+      "url": "https://api.space-computer.ai/v1/visualizations/metrics_serve"
+    }
+  }
+}
+```
+
 ## 📊 **Analytics API**
 
 ### **Get Performance Metrics**
