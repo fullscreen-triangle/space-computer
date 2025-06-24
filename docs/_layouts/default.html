@@ -52,7 +52,13 @@
           {%- endfor -%}
           
           {%- if current_index > 0 -%}
-            {%- assign prev_page = pages[current_index - 1] -%}
+            {%- assign prev_index = current_index | minus: 1 -%}
+            {%- for p in pages -%}
+              {%- if forloop.index0 == prev_index -%}
+                {%- assign prev_page = p -%}
+                {%- break -%}
+              {%- endif -%}
+            {%- endfor -%}
             {%- assign prev_page_obj = site.pages | where: "name", prev_page | first -%}
             <a href="{{ prev_page_obj.url | relative_url }}" class="nav-prev">
               ← {{ prev_page_obj.title | default: prev_page_obj.name }}
@@ -61,7 +67,12 @@
           
           {%- assign next_index = current_index | plus: 1 -%}
           {%- if next_index < pages.size -%}
-            {%- assign next_page = pages[next_index] -%}
+            {%- for p in pages -%}
+              {%- if forloop.index0 == next_index -%}
+                {%- assign next_page = p -%}
+                {%- break -%}
+              {%- endif -%}
+            {%- endfor -%}
             {%- assign next_page_obj = site.pages | where: "name", next_page | first -%}
             <a href="{{ next_page_obj.url | relative_url }}" class="nav-next">
               {{ next_page_obj.title | default: next_page_obj.name }} →

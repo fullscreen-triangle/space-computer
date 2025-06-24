@@ -1,0 +1,67 @@
+[package]
+name = "turbulance_parser"
+version = "0.1.0"
+edition = "2021"
+description = "Turbulance probabilistic scientific programming language parser and compiler"
+authors = ["Space Computer Team"]
+
+[dependencies]
+# Core parsing and lexing
+nom = "7.1"
+logos = "0.13"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Async runtime and futures
+tokio = { version = "1.0", features = ["full"] }
+futures = "0.3"
+async-trait = "0.1"
+
+# Error handling and diagnostics
+thiserror = "1.0"
+miette = { version = "5.0", features = ["fancy"] }
+ariadne = "0.3"
+
+# Scientific computing and statistics
+nalgebra = "0.32"
+statrs = "0.16"
+ndarray = "0.15"
+
+# UUID generation for tracking
+uuid = { version = "1.0", features = ["v4"] }
+
+# Logging and tracing
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# DateTime handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# Configuration
+config = "0.13"
+
+# Hash maps and collections
+indexmap = "2.0"
+dashmap = "5.0"
+
+# Regex for pattern matching
+regex = "1.0"
+
+# Mathematical expressions
+meval = "0.2"
+
+# Python interop for scientific libraries
+pyo3 = { version = "0.19", features = ["auto-initialize"], optional = true }
+
+[features]
+default = []
+python-interop = ["pyo3"]
+
+[dev-dependencies]
+criterion = "0.5"
+proptest = "1.0"
+tokio-test = "0.4"
+
+[[bench]]
+name = "parser_benchmarks"
+harness = false 

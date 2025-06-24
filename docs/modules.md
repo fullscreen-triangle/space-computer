@@ -500,8 +500,8 @@ class BiomechanicalFeedback extends React.Component<BiomechanicalFeedbackProps> 
                 <div className="meter-bar">
                   <div 
                     className="meter-fill"
-                    style={{ 
-                      width: `${(load.force.magnitude / load.force.max) * 100}%`,
+                    style={{
+                      width: ((load.force.magnitude / load.force.max) * 100) + '%',
                       backgroundColor: this.getForceColor(load.force.magnitude, load.force.max)
                     }}
                   />
@@ -513,8 +513,8 @@ class BiomechanicalFeedback extends React.Component<BiomechanicalFeedbackProps> 
                 <div className="meter-bar">
                   <div 
                     className="meter-fill"
-                    style={{ 
-                      width: `${(load.moment.magnitude / load.moment.max) * 100}%`,
+                    style={{
+                      width: `$${'{'}(load.moment.magnitude / load.moment.max) * 100}%`,
                       backgroundColor: this.getMomentColor(load.moment.magnitude, load.moment.max)
                     }}
                   />
@@ -540,8 +540,8 @@ class BiomechanicalFeedback extends React.Component<BiomechanicalFeedbackProps> 
             <div className="score-bar">
               <div 
                 className="score-fill"
-                style={{ 
-                  width: `${patterns.symmetry * 100}%`,
+                style={{
+                  width: `$${'{'}patterns.symmetry * 100}%`,
                   backgroundColor: this.getScoreColor(patterns.symmetry)
                 }}
               />
@@ -553,8 +553,8 @@ class BiomechanicalFeedback extends React.Component<BiomechanicalFeedbackProps> 
             <div className="score-bar">
               <div 
                 className="score-fill"
-                style={{ 
-                  width: `${patterns.coordination * 100}%`,
+                style={{
+                  width: `$${'{'}patterns.coordination * 100}%`,
                   backgroundColor: this.getScoreColor(patterns.coordination)
                 }}
               />
@@ -566,8 +566,8 @@ class BiomechanicalFeedback extends React.Component<BiomechanicalFeedbackProps> 
             <div className="score-bar">
               <div 
                 className="score-fill"
-                style={{ 
-                  width: `${patterns.efficiency * 100}%`,
+                style={{
+                  width: `$${'{'}patterns.efficiency * 100}%`,
                   backgroundColor: this.getScoreColor(patterns.efficiency)
                 }}
               />
