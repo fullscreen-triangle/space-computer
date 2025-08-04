@@ -1,0 +1,56 @@
+[package]
+name = "hardware-integration"
+version = "0.1.0"
+edition = "2021"
+authors = ["Kundai Farai Sachikonye <kundai.sachikonye@wzw.tum.de>"]
+description = "Hardware S-value readers for LED arrays, MIMO systems, and GPS differential sensing"
+license = "MIT"
+repository = "https://github.com/fullscreen-triangle/space-computer"
+keywords = ["hardware", "s-entropy", "led", "mimo", "gps"]
+categories = ["hardware-support", "embedded", "algorithms"]
+
+[dependencies]
+s-entropy-engine = { path = "../s-entropy-engine" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tokio = { workspace = true }
+nalgebra = { workspace = true }
+ndarray = { workspace = true }
+rayon = { workspace = true }
+crossbeam = { workspace = true }
+
+# Hardware interface libraries
+serialport = "4.2"
+usb-device = "0.2"
+linux-embedded-hal = { version = "0.4", optional = true }
+
+# Signal processing
+rustfft = "6.1"
+spectrum-analyzer = "1.5"
+realfft = "3.2"
+
+# Networking for MIMO
+tokio-tungstenite = "0.20"
+reqwest = { version = "0.11", features = ["json"] }
+
+# GPS processing
+nmea = "0.6"
+gpsd_proto = "0.11"
+
+[features]
+default = ["std"]
+std = []
+embedded = ["linux-embedded-hal"]
+simulation = []
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+tokio-test = "0.4"
+
+[[bench]]
+name = "hardware_benchmarks"
+harness = false

@@ -1,0 +1,50 @@
+[package]
+name = "s-entropy-engine"
+version = "0.1.0"
+edition = "2021"
+authors = ["Kundai Farai Sachikonye <kundai.sachikonye@wzw.tum.de>"]
+description = "Core S-Entropy Framework with St. Stella constant implementation for zero-computation navigation"
+license = "MIT"
+repository = "https://github.com/fullscreen-triangle/space-computer"
+keywords = ["s-entropy", "zero-computation", "navigation", "st-stella", "gas-subtraction"]
+categories = ["algorithms", "mathematics", "science"]
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+nalgebra = { workspace = true }
+ndarray = { workspace = true }
+rayon = { workspace = true }
+dashmap = { workspace = true }
+parking_lot = { workspace = true }
+crossbeam = { workspace = true }
+
+# Mathematical computation
+num-traits = "0.2"
+num-complex = "0.4"
+approx = "0.5"
+rand = "0.8"
+rand_distr = "0.4"
+
+# Performance optimization
+simd = "0.3"
+wide = "0.7"
+
+[features]
+default = ["std"]
+std = []
+no_std = []
+simd_acceleration = ["simd", "wide"]
+high_precision = []
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.0"
+
+[[bench]]
+name = "s_entropy_benchmarks"
+harness = false
